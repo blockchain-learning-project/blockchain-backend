@@ -16,9 +16,20 @@ contract DisasterData {
 
     mapping(string => SeverityData) public severity;
 
+    mapping(string => uint) public aggregateSeverety;
+
+    function getValues(string memory district) public view returns(uint[] memory)
+    {
+        return severity[district].values;
+    }
+
     constructor() {
         admin = msg.sender;
         startDay = block.timestamp / 5 minutes;
+    }
+
+    function min(uint256 a, uint256 b) external pure returns (uint256) {
+        return a <= b ? a : b;
     }
 
     function setSeverity(string memory district, uint newSeverity) public {
@@ -36,11 +47,20 @@ contract DisasterData {
             severity[district] = data;
             currentValue = 0;
         }
-        for(uint i=severity[district].lastUpdatedDay+1; i<currentDay; i++) {
+
+        //uint totalDays = severity[district].values.length < 10 ? severity[district].values.length : 10;
+        //uint lastUpdatedDay = severity[district].lastUpdatedDay;
+        //uint start = min(lastUpdatedDay, currentDay - totalDays);
+
+        for(uint i=severity[district].lastUpdatedDay+1; i<currentDay; i++)
+        {
+
             severity[district].values.push(currentValue);
         }
         severity[district].values.push(newSeverity);
         severity[district].lastUpdatedDay = currentDay;
+
+        //aggregateSeverety[district] = getAccumulatedSeverity(district);
     }
 
     function getSeverityData(string memory district, uint day) public view returns (uint){
@@ -66,17 +86,7 @@ contract DisasterData {
         return sumSeverity;
     }
 
-    function getAccumulatedSeverityV2(string memory district) public view returns (uint) 
-    {
-        if(severity[district].values.length == 0) return 0;
-        uint sumSeverity = 0;
-        uint totalDays = severity[district].values.length < 10 ? severity[district].values.length : 10;
-        for(uint i=severity[district].values.length-totalDays; i<severity[district].values.length; i++) {
-            sumSeverity += severity[district].values[i];
-        }
-        return sumSeverity;
-    }
-
+    // event sumSe(string district, uint severity);
     function getTotalAccumulatedSeverity() public view returns (uint256)
     {
         string[36] memory districts = ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"];
@@ -84,7 +94,8 @@ contract DisasterData {
         uint256 aggregate = 0;
         for(uint256 i = 0; i<36; i++)
         {
-            aggregate += getAccumulatedSeverityV2(districts[i]);
+            aggregate += aggregateSeverety[districts[i]];
+            // emit sumSe(districts[i], aggregate);
         }
 
         return aggregate;

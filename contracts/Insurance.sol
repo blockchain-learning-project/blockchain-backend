@@ -57,7 +57,7 @@ contract Insurance
     {
         contractLock = false;
         startDay = getDay();
-        DisasterInterfaceObject = DisasterInterface(0xd9145CCE52D386f254917e481eB44e9943F39138);
+        DisasterInterfaceObject = DisasterInterface(0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99);
     }
 
     function getFarmer() public view returns(farmer memory)
@@ -108,11 +108,11 @@ contract Insurance
         uint256 farmer_index = list_farmer_index[msg.sender];
 
         farmer storage t_farmer = list_farmer[farmer_index];
+        current_day = current_day - startDay;
         t_farmer.paid_premium.push(msg.value);
         t_farmer.paid_timestamp.push(current_day);
         t_farmer.total_paid_premium += msg.value;
 
-        current_day = current_day - startDay;
         day_aggregate[current_day] += msg.value;
     }
     
@@ -133,14 +133,13 @@ contract Insurance
     }
 
     //flawed => 10 0 50 0 0 will be calculated as 10 50
-    function calculateDayFactor(farmer memory t_farmer) private pure returns (uint256)
+    function calculateDayFactor(farmer memory t_farmer) private view returns (uint256)
     {
         uint256 t_day_factor = 0;
         uint256 j = 1;
-
         for(uint256 i = t_farmer.paid_premium.length -1; i >= 0; i--)
         {
-            t_day_factor += t_farmer.paid_premium[i] * j;
+            t_day_factor += t_farmer.paid_premium[i] * (endDay - t_farmer.paid_timestamp[i] +1);
             j++;
             
             if(i == 0)
@@ -150,7 +149,20 @@ contract Insurance
         return t_day_factor;
     }
 
-    function claimInsurance() public payable onlyFarmer
+    event cnumber
+    (
+        uint endDay,
+        uint totalDayFactorAggregate,
+        uint totalSeverityFactorAggregate,
+        uint day_factor,
+        uint severity_factor,
+        uint p1,
+        uint p2,
+        uint numerator,
+        uint denominator
+    );
+
+    function claimInsurance() public payable
     {
         uint256 today = getDay();
         farmer memory t_farmer = list_farmer[list_farmer_index[msg.sender]];
@@ -171,6 +183,8 @@ contract Insurance
         uint256 p2 = totalDayFactorAggregate * severity_factor;
         uint256 numerator = (p1 + p2) * t_farmer.total_paid_premium;
         uint256 denominator = (2 * totalDayFactorAggregate * totalSeverityFactorAggregate);
+
+        emit cnumber(endDay, totalDayFactorAggregate, totalSeverityFactorAggregate, day_factor, severity_factor, p1, p2, numerator, denominator);
 
         uint256 total_insurance_amount = numerator / denominator;
 
