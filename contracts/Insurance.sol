@@ -40,7 +40,7 @@ contract Insurance
 
     uint256 public totalSeverityFactorAggregate;
 
-    DisasterInterface DisasterDataObject;
+    DisasterInterface DisasterInterfaceObject;
     modifier unlocked
     {
         require(contractLock == false, "Contract has been locked");
@@ -57,7 +57,7 @@ contract Insurance
     {
         contractLock = false;
         startDay = getDay();
-        DisasterDataObject = DisasterInterface(0xaD736Bb2D21e38e9978592904ea746Af489476e6);
+        DisasterInterfaceObject = DisasterInterface(0xd9145CCE52D386f254917e481eB44e9943F39138);
     }
 
     function getFarmer() public view returns(farmer memory)
@@ -121,16 +121,19 @@ contract Insurance
         uint256 day_aggregator_length = endDay - startDay;
         uint256 aggregate_day_factor = 0;
         uint256 j = 1;
-        for(uint256 i = day_aggregator_length; i>= startDay ;i--)
+        for(uint256 i = day_aggregator_length; i>= 0 ;i--)
         {
             aggregate_day_factor += day_aggregate[i] * j;
             j++;
+
+            if(i == 0)
+                break;
         }
         return aggregate_day_factor;
     }
 
     //flawed => 10 0 50 0 0 will be calculated as 10 50
-    function calculateDayFactor(farmer memory t_farmer) private view returns (uint256)
+    function calculateDayFactor(farmer memory t_farmer) private pure returns (uint256)
     {
         uint256 t_day_factor = 0;
         uint256 j = 1;
@@ -139,6 +142,9 @@ contract Insurance
         {
             t_day_factor += t_farmer.paid_premium[i] * j;
             j++;
+            
+            if(i == 0)
+                break;
         }
 
         return t_day_factor;
@@ -155,11 +161,11 @@ contract Insurance
             endDay = today;
             
             totalDayFactorAggregate = calculateAggregateDayFactor();
-            totalSeverityFactorAggregate = DisasterDataObject.getTotalAccumulatedSeverity();
+            totalSeverityFactorAggregate = DisasterInterfaceObject.getTotalAccumulatedSeverity();
         }
 
         uint256 day_factor = calculateDayFactor(t_farmer);
-        uint256 severity_factor = DisasterDataObject.getAccumulatedSeverity(t_farmer.district);
+        uint256 severity_factor = DisasterInterfaceObject.getAccumulatedSeverity(t_farmer.district);
 
         uint256 p1 = totalSeverityFactorAggregate * day_factor;
         uint256 p2 = totalDayFactorAggregate * severity_factor;
