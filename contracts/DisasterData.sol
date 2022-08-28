@@ -2,7 +2,7 @@
  *Submitted for verification at polygonscan.com on 2022-08-26
 */
 
-pragma solidity ^0.8.16;
+pragma solidity ^0.8.7;
 
 contract DisasterData {
 
@@ -28,10 +28,11 @@ contract DisasterData {
         startDay = block.timestamp / 5 minutes;
     }
 
-    function min(uint256 a, uint256 b) external pure returns (uint256) {
+    function min(uint256 a, uint256 b) private pure returns (uint256) {
         return a <= b ? a : b;
     }
 
+    
     function setSeverity(string memory district, uint newSeverity) public {
         require(msg.sender == admin, "Only admin can set data");
         require(newSeverity<=100, "Severity exceeds max value of 100");
@@ -48,20 +49,16 @@ contract DisasterData {
             currentValue = 0;
         }
 
-        //uint totalDays = severity[district].values.length < 10 ? severity[district].values.length : 10;
-        //uint lastUpdatedDay = severity[district].lastUpdatedDay;
-        //uint start = min(lastUpdatedDay, currentDay - totalDays);
-
         for(uint i=severity[district].lastUpdatedDay+1; i<currentDay; i++)
         {
-
             severity[district].values.push(currentValue);
         }
         severity[district].values.push(newSeverity);
         severity[district].lastUpdatedDay = currentDay;
 
-        //aggregateSeverety[district] = getAccumulatedSeverity(district);
+        aggregateSeverety[district] = getAccumulatedSeverity(district);
     }
+
 
     function getSeverityData(string memory district, uint day) public view returns (uint){
         require(severity[district].lastUpdatedDay != 0, "Data not present for location");
@@ -85,8 +82,7 @@ contract DisasterData {
         }
         return sumSeverity;
     }
-
-    // event sumSe(string district, uint severity);
+/*
     function getTotalAccumulatedSeverity() public view returns (uint256)
     {
         string[36] memory districts = ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"];
@@ -95,9 +91,9 @@ contract DisasterData {
         for(uint256 i = 0; i<36; i++)
         {
             aggregate += aggregateSeverety[districts[i]];
-            // emit sumSe(districts[i], aggregate);
         }
 
         return aggregate;
     }
+    */
 }
