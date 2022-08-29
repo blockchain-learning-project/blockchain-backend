@@ -2,9 +2,9 @@
 <br>
 Credits
 
-*   Siddhesh Dhinge
-*   Onkar Swami
-*   Sumit Kawale
-*   Jayesh Kowale
+*   [Siddhesh Dhinge](https://github.com/SiddheshDhinge)
+*   [Onkar Swami](https://github.com/omiswami99)
+*   [Sumit Kawale](https://github.com/sumitkawale)
+*   [Jayesh Kowale](https://github.com/jayeshkowale)
 
  ~For Cion Digital
